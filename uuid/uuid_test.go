@@ -14,20 +14,21 @@ import (
 	"testing"
 )
 
-func TestUuid4Format(t *testing.T) {
+func TestUuid4String(t *testing.T) {
 	u, err := uuid.Uuid4()
 	if err != nil {
 		t.Fatal(err)
 	}
+	us := u.String()
 	// https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_.28random.29
 	pat := "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"
-	if _, err := regexp.Match(pat, []byte(u)); err != nil {
-		t.Fatalf("No match for %v: %v", u, err)
+	if matched, err := regexp.Match(pat, []byte(us)); !matched {
+		t.Fatalf("No match for %v: %v", us, err)
 	}
 }
 
 func TestUuid4Uniq(t *testing.T) {
-	seen := make(map[string]bool)
+	seen := make(map[uuid.UUID]bool)
 	for i := 0; i < 10000; i++ {
 		u, err := uuid.Uuid4()
 		if err != nil {
@@ -43,5 +44,12 @@ func TestUuid4Uniq(t *testing.T) {
 func BenchmarkUuid4(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		uuid.Uuid4()
+	}
+}
+
+func BenchmarkUuid4String(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		u, _ := uuid.Uuid4()
+		u.String()
 	}
 }
