@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"ovirt/imageio/directio"
 )
 
 const (
@@ -41,7 +40,7 @@ func Receive(path string, reader io.Reader, size int64, offset int64, progress P
 		return 0, fmt.Errorf("offset is not a multiple of 512 bytes: %v", offset)
 	}
 
-	file, err := directio.OpenFile(path, os.O_WRONLY, 0600)
+	file, err := OpenFile(path, os.O_WRONLY, 0600)
 	if err != nil {
 		return
 	}
@@ -53,7 +52,7 @@ func Receive(path string, reader io.Reader, size int64, offset int64, progress P
 		}
 	}
 
-	buf, err := directio.AlignedBuffer(bufsize, alignment)
+	buf, err := AlignedBuffer(bufsize, alignment)
 	if err != nil {
 		return
 	}

@@ -9,7 +9,6 @@ Most of the daemon packages are implemented.
 - images - images web server
 - auth - authrization for images operations
 - fileio - perform I/O to local file (file or block device)
-- directio - helpers for doing direct I/O
 - testutil - utilities for testing
 - uuid - generates uuids version 4
 - bench - benchmarks tools
