@@ -9,47 +9,12 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 )
-
-type Bytes int64
-type Seconds uint
-
-type Ticket struct {
-	Mode    string
-	Size    Bytes
-	Url     string
-	Uuid    string
-	Timeout Seconds
-}
-
-func ParseTicket(buf []byte) (t *Ticket, err error) {
-	err = json.Unmarshal(buf, &t)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid json: %v", err)
-	}
-	if !(t.Mode == "r" || t.Mode == "w" || t.Mode == "rw") {
-		return nil, fmt.Errorf("Invalid mode: %v", t.Mode)
-	}
-	if t.Size <= 0 {
-		return nil, fmt.Errorf("Size must be positive: %v", t.Size)
-	}
-	if t.Url == "" {
-		return nil, fmt.Errorf("Url is required")
-	}
-	if t.Uuid == "" {
-		return nil, fmt.Errorf("Uuid is required")
-	}
-	if t.Timeout == 0 {
-		return nil, fmt.Errorf("Timeout is required")
-	}
-	return
-}
 
 // Auth provide authorization based on ticket and creation time
 type Auth struct {
