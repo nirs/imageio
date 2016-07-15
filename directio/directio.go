@@ -22,39 +22,6 @@ func OpenFile(name string, flag int, perm os.FileMode) (*os.File, error) {
 	return os.OpenFile(name, flag|syscall.O_DIRECT, perm)
 }
 
-// Enable enables direct I/O on a file.
-//
-// When directio I/O is anabled, read and write must use AlignedBuffer.
-func Enable(f *os.File) (err error) {
-	flags, err := fcntl(f.Fd(), syscall.F_GETFL, 0)
-	if err != nil {
-		return
-	}
-	_, err = fcntl(f.Fd(), syscall.F_SETFL, flags|syscall.O_DIRECT)
-	return
-}
-
-// Disable disables direct I/O on a file.
-//
-// When direct I/O is disabled, read and write can use unaligned buffer.
-func Disable(f *os.File) (err error) {
-	flags, err := fcntl(f.Fd(), syscall.F_GETFL, 0)
-	if err != nil {
-		return
-	}
-	_, err = fcntl(f.Fd(), syscall.F_SETFL, flags & ^syscall.O_DIRECT)
-	return
-}
-
-func fcntl(fd uintptr, cmd uintptr, arg int) (val int, err error) {
-	r, _, e := syscall.Syscall(syscall.SYS_FCNTL, fd, cmd, uintptr(arg))
-	val = int(r)
-	if e != 0 {
-		err = e
-	}
-	return
-}
-
 // AlignedBuffer allocates aligned buffer.
 //
 // Allocate a buffer of at least size bytes, aligned to align bytes.
