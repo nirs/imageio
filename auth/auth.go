@@ -60,8 +60,8 @@ type Auth struct {
 
 var supportedSchemes = map[string]bool{"file": true}
 
-// NewAuth creates new Auth from ticket, valid for t.Timeout seconds.
-func NewAuth(t *Ticket) (*Auth, error) {
+// newAuth creates new Auth from ticket, valid for t.Timeout seconds.
+func newAuth(t *Ticket) (*Auth, error) {
 	u, err := url.Parse(t.Url)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid url: %v: %v", t.Url, err)
@@ -71,18 +71,6 @@ func NewAuth(t *Ticket) (*Auth, error) {
 	}
 	expires := time.Now().Add(time.Duration(t.Timeout) * time.Second)
 	return &Auth{t, expires, u}, nil
-}
-
-// Read checks if caller may read up to size bytes, and return a url that the
-// caller may read from, or an error describing why the operation is forbidden.
-func (a *Auth) Read(size int64) (*url.URL, error) {
-	return a.check("r", size)
-}
-
-// Write checks if caller may write up to size bytes, and return a url that the
-// caller may write to, or an error describing why the operation is forbidden.
-func (a *Auth) Write(size int64) (*url.URL, error) {
-	return a.check("w", size)
 }
 
 func (a *Auth) check(mode string, size int64) (*url.URL, error) {
@@ -100,29 +88,16 @@ func (a *Auth) check(mode string, size int64) (*url.URL, error) {
 
 // Authorizations are accessed by multiple webserver goroutines /tickets/
 // requests are adding and removing, and /images/ requests are getting.  We can
-// use channels for synchronization, but single mutex seems simpler.  Extending
-// auth may need additional locking so concurrent calls to Auth.check will see
-// the correct expires time.
+// use channels for synchronization, but single mutex seems simpler.
 
 var (
 	authorization = map[string]*Auth{}
 	mutex         = sync.Mutex{}
 )
 
-// Returns Auth for ticket uuid, or error.
-func Get(u string) (a *Auth, err error) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	a = authorization[u]
-	if a == nil {
-		err = fmt.Errorf("No auth for %v", u)
-	}
-	return
-}
-
 // Add adds Auth for ticket
 func Add(t *Ticket) (err error) {
-	a, err := NewAuth(t)
+	a, err := newAuth(t)
 	if err != nil {
 		return
 	}
@@ -138,4 +113,26 @@ func Remove(u string) {
 	defer mutex.Unlock()
 	delete(authorization, u)
 	// TODO: cancel tasks authorized by u
+}
+
+// MayRead checks if caller may read up to size bytes, and return a url that the
+// caller may read from, or an error describing why the operation is forbidden.
+func MayRead(u string, size int64) (*url.URL, error) {
+	return check(u, "r", size)
+}
+
+// MayWrite checks if caller may write up to size bytes, and return a url that the
+// caller may write to, or an error describing why the operation is forbidden.
+func MayWrite(u string, size int64) (*url.URL, error) {
+	return check(u, "w", size)
+}
+
+func check(u string, mode string, size int64) (*url.URL, error) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	a := authorization[u]
+	if a == nil {
+		return nil, fmt.Errorf("No auth for %v", u)
+	}
+	return a.check(mode, size)
 }

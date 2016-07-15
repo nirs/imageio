@@ -81,12 +81,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 func put(w http.ResponseWriter, r *http.Request) {
 	ticketUuid := r.URL.Path[len(ROOT):]
-	may, err := auth.Get(ticketUuid)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	url, err := may.Write(r.ContentLength)
+	url, err := auth.MayWrite(ticketUuid, r.ContentLength)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return

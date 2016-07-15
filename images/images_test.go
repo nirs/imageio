@@ -37,7 +37,7 @@ func TestGetNotFound(t *testing.T) {
 	}
 }
 
-func TestPutNotFound(t *testing.T) {
+func TestPutNoAuth(t *testing.T) {
 	err := Start("localhost:0")
 	if err != nil {
 		t.Fatal(err)
@@ -50,8 +50,8 @@ func TestPutNotFound(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusNotFound {
-		t.Fatalf("Expected %v, got %v", http.StatusNotFound, resp.StatusCode)
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("Expected %v, got %v", http.StatusForbidden, resp.StatusCode)
 	}
 }
 

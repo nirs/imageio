@@ -95,38 +95,79 @@ func TestInvalidTicket(t *testing.T) {
 	}
 }
 
+func TestMayReadNoAuth(t *testing.T) {
+	u, _ := MayRead("3facfbc1", 1024)
+	if u != nil {
+		t.Fatal("Read allowed without a tikcet: %v", u)
+	}
+}
+
+func TestMayWriteNoAuth(t *testing.T) {
+	u, _ := MayWrite("3facfbc1", 1024)
+	if u != nil {
+		t.Fatal("Write allowed without a tikcet: %v", u)
+	}
+}
+
+func TestAddRemove(t *testing.T) {
+	ticket := &Ticket{
+		Mode:    "r",
+		Size:    1024,
+		Timeout: 1,
+		Url:     "file:///path",
+		Uuid:    "3facfbc1",
+	}
+	err := Add(ticket)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer Remove(ticket.Uuid)
+
+	u, err := MayRead(ticket.Uuid, 1024)
+	if u == nil {
+		t.Fatal("Auth not added: %v", err)
+	}
+
+	Remove(ticket.Uuid)
+	u, err = MayRead(ticket.Uuid, 1024)
+	if u != nil {
+		t.Fatal("Auth not removed: %v", u)
+	}
+}
+
 var mayRead = []*Ticket{
-	{Mode: "rw", Size: 1024, Timeout: 1, Url: "file:///path"},
-	{Mode: "r", Size: 1024, Timeout: 1, Url: "file:///path"},
-	{Mode: "r", Size: 1025, Timeout: 1, Url: "file:///path"},
+	{Mode: "rw", Size: 1024, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "r", Size: 1024, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "r", Size: 1025, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
 }
 
 var mayNotRead = []*Ticket{
-	{Mode: "w", Size: 1024, Timeout: 1, Url: "file:///path"},
-	{Mode: "r", Size: 1023, Timeout: 1, Url: "file:///path"},
-	{Mode: "r", Size: 1024, Timeout: 0, Url: "file:///path"},
+	{Mode: "w", Size: 1024, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "r", Size: 1023, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "r", Size: 1024, Timeout: 0, Url: "file:///path", Uuid: "3facfbc1"},
 }
 
 var mayWrite = []*Ticket{
-	{Mode: "rw", Size: 1024, Timeout: 1, Url: "file:///path"},
-	{Mode: "w", Size: 1024, Timeout: 1, Url: "file:///path"},
-	{Mode: "w", Size: 1025, Timeout: 1, Url: "file:///path"},
+	{Mode: "rw", Size: 1024, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "w", Size: 1024, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "w", Size: 1025, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
 }
 
 var mayNotWrite = []*Ticket{
-	{Mode: "r", Size: 1024, Timeout: 1, Url: "file:///path"},
-	{Mode: "w", Size: 1023, Timeout: 1, Url: "file:///path"},
-	{Mode: "w", Size: 1024, Timeout: 0, Url: "file:///path"},
+	{Mode: "r", Size: 1024, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "w", Size: 1023, Timeout: 1, Url: "file:///path", Uuid: "3facfbc1"},
+	{Mode: "w", Size: 1024, Timeout: 0, Url: "file:///path", Uuid: "3facfbc1"},
 }
 
 func TestMayRead(t *testing.T) {
 	for _, ticket := range mayRead {
-		may, err := NewAuth(ticket)
+		err := Add(ticket)
 		if err != nil {
-			t.Errorf("Cannot create for %+v: %v", ticket, err)
-			continue
+			t.Fatal(err)
 		}
-		u, err := may.Read(1024)
+		defer Remove(ticket.Uuid)
+
+		u, err := MayRead(ticket.Uuid, 1024)
 		if err != nil {
 			t.Errorf("Should allow read for %+v: %v", ticket, err)
 			continue
@@ -139,12 +180,13 @@ func TestMayRead(t *testing.T) {
 
 func TestMayNotRead(t *testing.T) {
 	for _, ticket := range mayNotRead {
-		may, err := NewAuth(ticket)
+		err := Add(ticket)
 		if err != nil {
-			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
-			continue
+			t.Fatal(err)
 		}
-		_, err = may.Read(1024)
+		defer Remove(ticket.Uuid)
+
+		_, err = MayRead(ticket.Uuid, 1024)
 		if err == nil {
 			t.Errorf("Should not allow read for %+v", ticket)
 		}
@@ -153,12 +195,13 @@ func TestMayNotRead(t *testing.T) {
 
 func TestMayWrite(t *testing.T) {
 	for _, ticket := range mayWrite {
-		may, err := NewAuth(ticket)
+		err := Add(ticket)
 		if err != nil {
-			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
-			continue
+			t.Fatal(err)
 		}
-		u, err := may.Write(1024)
+		defer Remove(ticket.Uuid)
+
+		u, err := MayWrite(ticket.Uuid, 1024)
 		if err != nil {
 			t.Errorf("Should allow write for %+v: %v", ticket, err)
 			continue
@@ -171,60 +214,15 @@ func TestMayWrite(t *testing.T) {
 
 func TestMayNotWrite(t *testing.T) {
 	for _, ticket := range mayNotWrite {
-		may, err := NewAuth(ticket)
+		err := Add(ticket)
 		if err != nil {
-			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
-			continue
+			t.Fatal(err)
 		}
-		_, err = may.Write(1024)
+		defer Remove(ticket.Uuid)
+
+		_, err = MayWrite(ticket.Uuid, 1024)
 		if err == nil {
 			t.Errorf("Should not allow write for %+v", ticket)
 		}
-	}
-}
-
-func TestGetNoAuth(t *testing.T) {
-	may, _ := Get("ticket-uuid")
-	if may != nil {
-		t.Fatal("Unexpected auth: %v", may)
-	}
-}
-
-func TestAdd(t *testing.T) {
-	u := "3facfbc1-68e0-4b77-b0c6-87e66fcabcc2"
-	ticket := &Ticket{
-		Mode:    "r",
-		Size:    1024,
-		Timeout: 1,
-		Url:     "file:///path",
-		Uuid:    u,
-	}
-	err := Add(ticket)
-	if err != nil {
-		t.Fatal(err)
-	}
-	may, err := Get(u)
-	if may == nil || err != nil {
-		t.Fatalf("Expected auth, got nil: %v", err)
-	}
-}
-
-func TestRemove(t *testing.T) {
-	u := "3facfbc1-68e0-4b77-b0c6-87e66fcabcc2"
-	ticket := &Ticket{
-		Mode:    "r",
-		Size:    1024,
-		Timeout: 1,
-		Url:     "file:///path",
-		Uuid:    u,
-	}
-	err := Add(ticket)
-	if err != nil {
-		t.Fatal(err)
-	}
-	Remove(u)
-	may, _ := Get(u)
-	if may != nil {
-		t.Fatalf("Unexpected auth: %v", may)
 	}
 }
