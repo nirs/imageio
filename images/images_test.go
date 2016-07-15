@@ -6,7 +6,7 @@
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 
-package images_test
+package images
 
 import (
 	"bytes"
@@ -15,17 +15,16 @@ import (
 	"net/http"
 	"os"
 	"ovirt/imageio/auth"
-	"ovirt/imageio/images"
 	"ovirt/imageio/testutil"
 	"testing"
 )
 
 func TestGetNotFound(t *testing.T) {
-	err := images.Start("localhost:0")
+	err := Start("localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer images.Stop()
+	defer Stop()
 
 	resp, err := request("GET", "/images/no-such-ticket", nil)
 	if resp == nil {
@@ -39,11 +38,11 @@ func TestGetNotFound(t *testing.T) {
 }
 
 func TestPutNotFound(t *testing.T) {
-	err := images.Start("localhost:0")
+	err := Start("localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer images.Stop()
+	defer Stop()
 
 	resp, err := request("PUT", "/images/no-such-ticket", nil)
 	if resp == nil {
@@ -57,11 +56,11 @@ func TestPutNotFound(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	err := images.Start("localhost:0")
+	err := Start("localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer images.Stop()
+	defer Stop()
 
 	const size = 1024
 
@@ -103,20 +102,20 @@ func TestPut(t *testing.T) {
 }
 
 func TestAlreadyRunning(t *testing.T) {
-	err := images.Stop()
+	err := Stop()
 	if err == nil {
 		t.Fatal("Stop did not fail on stopped server")
 	}
 }
 
 func TestNotRunning(t *testing.T) {
-	err := images.Start("localhost:0")
+	err := Start("localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer images.Stop()
+	defer Stop()
 
-	err = images.Start("ignored")
+	err = Start("ignored")
 	if err == nil {
 		t.Fatal("Start did not fail on running server")
 	}
@@ -124,7 +123,7 @@ func TestNotRunning(t *testing.T) {
 
 // request sends http request ot the images server
 func request(method string, path string, buf []byte) (resp *http.Response, err error) {
-	url := fmt.Sprintf("http://%s%s", images.Addr(), path)
+	url := fmt.Sprintf("http://%s%s", Addr(), path)
 	body := bytes.NewReader(buf)
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

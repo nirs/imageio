@@ -6,16 +6,15 @@
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 
-package uuid_test
+package uuid
 
 import (
-	"ovirt/imageio/uuid"
 	"regexp"
 	"testing"
 )
 
 func TestUuid4String(t *testing.T) {
-	u, err := uuid.Uuid4()
+	u, err := Uuid4()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,9 +27,9 @@ func TestUuid4String(t *testing.T) {
 }
 
 func TestUuid4Uniq(t *testing.T) {
-	seen := make(map[uuid.UUID]bool)
+	seen := make(map[UUID]bool)
 	for i := 0; i < 10000; i++ {
-		u, err := uuid.Uuid4()
+		u, err := Uuid4()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -43,13 +42,13 @@ func TestUuid4Uniq(t *testing.T) {
 
 func BenchmarkUuid4(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		uuid.Uuid4()
+		Uuid4()
 	}
 }
 
 func BenchmarkUuid4String(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		u, _ := uuid.Uuid4()
+		u, _ := Uuid4()
 		u.String()
 	}
 }

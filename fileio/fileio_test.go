@@ -6,13 +6,12 @@
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 
-package fileio_test
+package fileio
 
 import (
 	"bytes"
 	"io/ioutil"
 	"os"
-	"ovirt/imageio/fileio"
 	"ovirt/imageio/testutil"
 	"testing"
 )
@@ -27,7 +26,7 @@ func TestReceiveFull(t *testing.T) {
 
 	buf := testutil.Buffer(size)
 	reader := bytes.NewReader(buf)
-	n, err := fileio.Receive(path, reader, size, 0, nil)
+	n, err := Receive(path, reader, size, 0, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +53,7 @@ func TestReceiveRandom(t *testing.T) {
 
 	buf := testutil.Buffer(size)
 	reader := testutil.RandomReader(bytes.NewReader(buf))
-	n, err := fileio.Receive(path, reader, size, 0, nil)
+	n, err := Receive(path, reader, size, 0, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +82,7 @@ func TestReceiveOffset(t *testing.T) {
 
 	buf := testutil.Buffer(bufsize)
 	reader := bytes.NewReader(buf)
-	n, err := fileio.Receive(path, reader, bufsize, offset, nil)
+	n, err := Receive(path, reader, bufsize, offset, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +122,7 @@ func TestReceiveUnalignedSize(t *testing.T) {
 
 	buf := testutil.Buffer(size)
 	reader := bytes.NewReader(buf)
-	n, err := fileio.Receive(path, reader, size, 0, nil)
+	n, err := Receive(path, reader, size, 0, nil)
 	if n != 0 || err == nil {
 		t.Fatalf("Call did not fail: n=%v, err=%v", n, err)
 	}
@@ -138,7 +137,7 @@ func TestReceiveUnalignedOffset(t *testing.T) {
 
 	buf := testutil.Buffer(512)
 	reader := bytes.NewReader(buf)
-	n, err := fileio.Receive(path, reader, 512, 511, nil)
+	n, err := Receive(path, reader, 512, 511, nil)
 	if n != 0 || err == nil {
 		t.Fatalf("Call did not fail: n=%v, err=%v", n, err)
 	}

@@ -6,25 +6,24 @@
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 
-package directio_test
+package directio
 
 import (
 	"io/ioutil"
 	"os"
-	"ovirt/imageio/directio"
 	"path/filepath"
 	"testing"
 )
 
 func TestBadSize(t *testing.T) {
-	_, err := directio.AlignedBuffer(100, 4096)
+	_, err := AlignedBuffer(100, 4096)
 	if err == nil {
 		t.Fatal("Expected error with unaligned size")
 	}
 }
 
 func TestBadAlign(t *testing.T) {
-	_, err := directio.AlignedBuffer(1024, 100)
+	_, err := AlignedBuffer(1024, 100)
 	if err == nil {
 		t.Fatal("Expected error with unaligned align")
 	}
@@ -38,13 +37,13 @@ func TestOpenFile(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	name := filepath.Join(dir, "file")
-	file, err := directio.OpenFile(name, os.O_RDWR|os.O_CREATE, 0600)
+	file, err := OpenFile(name, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer file.Close()
 
-	buf, err := directio.AlignedBuffer(1024, 4096)
+	buf, err := AlignedBuffer(1024, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,14 +76,14 @@ func TestEnable(t *testing.T) {
 	defer file.Close()
 	defer os.Remove(file.Name())
 
-	buf, err := directio.AlignedBuffer(1024, 4096)
+	buf, err := AlignedBuffer(1024, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	copy(buf, "testing 1 2 3...")
 
-	err = directio.Enable(file)
+	err = Enable(file)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,13 +114,13 @@ func TestDisable(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	name := filepath.Join(dir, "file")
-	file, err := directio.OpenFile(name, os.O_RDWR|os.O_CREATE, 0600)
+	file, err := OpenFile(name, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer file.Close()
 
-	err = directio.Disable(file)
+	err = Disable(file)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -6,10 +6,9 @@
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 
-package auth_test
+package auth
 
 import (
-	"ovirt/imageio/auth"
 	"testing"
 )
 
@@ -21,7 +20,7 @@ func TestParseTicket(t *testing.T) {
 		"url": "file:///path",
 		"uuid": "3facfbc1-68e0-4b77-b0c6-87e66fcabcc2"
 	}`
-	ticket, err := auth.ParseTicket([]byte(text))
+	ticket, err := ParseTicket([]byte(text))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,32 +88,32 @@ var invalidTickets = []struct {
 
 func TestInvalidTicket(t *testing.T) {
 	for _, test := range invalidTickets {
-		ticket, err := auth.ParseTicket([]byte(test.json))
+		ticket, err := ParseTicket([]byte(test.json))
 		if err == nil {
 			t.Errorf("%s did not fail: %+v", test.desc, ticket)
 		}
 	}
 }
 
-var mayRead = []*auth.Ticket{
+var mayRead = []*Ticket{
 	{Mode: "rw", Size: 1024, Timeout: 1, Url: "file:///path"},
 	{Mode: "r", Size: 1024, Timeout: 1, Url: "file:///path"},
 	{Mode: "r", Size: 1025, Timeout: 1, Url: "file:///path"},
 }
 
-var mayNotRead = []*auth.Ticket{
+var mayNotRead = []*Ticket{
 	{Mode: "w", Size: 1024, Timeout: 1, Url: "file:///path"},
 	{Mode: "r", Size: 1023, Timeout: 1, Url: "file:///path"},
 	{Mode: "r", Size: 1024, Timeout: 0, Url: "file:///path"},
 }
 
-var mayWrite = []*auth.Ticket{
+var mayWrite = []*Ticket{
 	{Mode: "rw", Size: 1024, Timeout: 1, Url: "file:///path"},
 	{Mode: "w", Size: 1024, Timeout: 1, Url: "file:///path"},
 	{Mode: "w", Size: 1025, Timeout: 1, Url: "file:///path"},
 }
 
-var mayNotWrite = []*auth.Ticket{
+var mayNotWrite = []*Ticket{
 	{Mode: "r", Size: 1024, Timeout: 1, Url: "file:///path"},
 	{Mode: "w", Size: 1023, Timeout: 1, Url: "file:///path"},
 	{Mode: "w", Size: 1024, Timeout: 0, Url: "file:///path"},
@@ -122,9 +121,9 @@ var mayNotWrite = []*auth.Ticket{
 
 func TestMayRead(t *testing.T) {
 	for _, ticket := range mayRead {
-		may, err := auth.NewAuth(ticket)
+		may, err := NewAuth(ticket)
 		if err != nil {
-			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
+			t.Errorf("Cannot create for %+v: %v", ticket, err)
 			continue
 		}
 		u, err := may.Read(1024)
@@ -140,7 +139,7 @@ func TestMayRead(t *testing.T) {
 
 func TestMayNotRead(t *testing.T) {
 	for _, ticket := range mayNotRead {
-		may, err := auth.NewAuth(ticket)
+		may, err := NewAuth(ticket)
 		if err != nil {
 			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
 			continue
@@ -154,7 +153,7 @@ func TestMayNotRead(t *testing.T) {
 
 func TestMayWrite(t *testing.T) {
 	for _, ticket := range mayWrite {
-		may, err := auth.NewAuth(ticket)
+		may, err := NewAuth(ticket)
 		if err != nil {
 			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
 			continue
@@ -172,7 +171,7 @@ func TestMayWrite(t *testing.T) {
 
 func TestMayNotWrite(t *testing.T) {
 	for _, ticket := range mayNotWrite {
-		may, err := auth.NewAuth(ticket)
+		may, err := NewAuth(ticket)
 		if err != nil {
 			t.Errorf("Cannot create auth for %+v: %v", ticket, err)
 			continue
@@ -185,7 +184,7 @@ func TestMayNotWrite(t *testing.T) {
 }
 
 func TestGetNoAuth(t *testing.T) {
-	may, _ := auth.Get("ticket-uuid")
+	may, _ := Get("ticket-uuid")
 	if may != nil {
 		t.Fatal("Unexpected auth: %v", may)
 	}
@@ -193,18 +192,18 @@ func TestGetNoAuth(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	u := "3facfbc1-68e0-4b77-b0c6-87e66fcabcc2"
-	ticket := &auth.Ticket{
+	ticket := &Ticket{
 		Mode:    "r",
 		Size:    1024,
 		Timeout: 1,
 		Url:     "file:///path",
 		Uuid:    u,
 	}
-	err := auth.Add(ticket)
+	err := Add(ticket)
 	if err != nil {
 		t.Fatal(err)
 	}
-	may, err := auth.Get(u)
+	may, err := Get(u)
 	if may == nil || err != nil {
 		t.Fatalf("Expected auth, got nil: %v", err)
 	}
@@ -212,19 +211,19 @@ func TestAdd(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	u := "3facfbc1-68e0-4b77-b0c6-87e66fcabcc2"
-	ticket := &auth.Ticket{
+	ticket := &Ticket{
 		Mode:    "r",
 		Size:    1024,
 		Timeout: 1,
 		Url:     "file:///path",
 		Uuid:    u,
 	}
-	err := auth.Add(ticket)
+	err := Add(ticket)
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth.Remove(u)
-	may, _ := auth.Get(u)
+	Remove(u)
+	may, _ := Get(u)
 	if may != nil {
 		t.Fatalf("Unexpected auth: %v", may)
 	}

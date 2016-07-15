@@ -6,21 +6,20 @@
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 
-package testutil_test
+package testutil
 
 import (
 	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
-	"ovirt/imageio/testutil"
 	"strings"
 	"testing"
 )
 
 func TestRandomReader(t *testing.T) {
 	src := "Text to copy to writer"
-	reader := testutil.RandomReader(strings.NewReader(src))
+	reader := RandomReader(strings.NewReader(src))
 	writer := &bytes.Buffer{}
 	_, err := io.Copy(writer, reader)
 	if err != nil {
@@ -33,7 +32,7 @@ func TestRandomReader(t *testing.T) {
 }
 
 func TestRandomReaderOne(t *testing.T) {
-	reader := testutil.RandomReader(strings.NewReader("123456789"))
+	reader := RandomReader(strings.NewReader("123456789"))
 	buf := make([]byte, 1)
 	n, err := reader.Read(buf)
 	if n != 1 {
@@ -42,7 +41,7 @@ func TestRandomReaderOne(t *testing.T) {
 }
 
 func TestRandomReaderEmpty(t *testing.T) {
-	reader := testutil.RandomReader(strings.NewReader("123456789"))
+	reader := RandomReader(strings.NewReader("123456789"))
 	buf := make([]byte, 0)
 	n, err := reader.Read(buf)
 	if n != 0 {
@@ -52,7 +51,7 @@ func TestRandomReaderEmpty(t *testing.T) {
 
 func TestCreateFile(t *testing.T) {
 	size := 1024 * 1024
-	path, err := testutil.CreateFile(size)
+	path, err := CreateFile(size)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +72,7 @@ func TestCreateFile(t *testing.T) {
 }
 
 func TestBufferStart(t *testing.T) {
-	buf := testutil.Buffer(4)
+	buf := Buffer(4)
 	expected := []byte{0, 1, 2, 3}
 	if !bytes.Equal(buf, expected) {
 		t.Fatalf("Expected %v, got %v", expected, buf)
@@ -81,7 +80,7 @@ func TestBufferStart(t *testing.T) {
 }
 
 func TestBufferRepeat(t *testing.T) {
-	buf := testutil.Buffer(255 + 4)[255:]
+	buf := Buffer(255 + 4)[255:]
 	expected := []byte{255, 0, 1, 2}
 	if !bytes.Equal(buf, expected) {
 		t.Fatalf("Expected %v, got %v", expected, buf)
