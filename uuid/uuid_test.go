@@ -49,6 +49,6 @@ func BenchmarkUuid4(b *testing.B) {
 func BenchmarkUuid4String(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		u, _ := Uuid4()
-		u.String()
+		_ = u.String()
 	}
 }

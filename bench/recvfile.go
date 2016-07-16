@@ -48,7 +48,7 @@ func main() {
 
 	size, err := strconv.ParseInt(args[1], 10, 64)
 	if err != nil || size < 0 {
-		fmt.Printf("Error: invalid size: %s\n", size)
+		fmt.Printf("Error: invalid size: %s\n", args[1])
 		os.Exit(2)
 	}
 

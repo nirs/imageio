@@ -15,14 +15,14 @@ import (
 func TestMayReadNoAuth(t *testing.T) {
 	u, _ := MayRead("3facfbc1", 1024)
 	if u != nil {
-		t.Fatal("Read allowed without a tikcet: %v", u)
+		t.Fatalf("Read allowed without a tikcet: %v", u)
 	}
 }
 
 func TestMayWriteNoAuth(t *testing.T) {
 	u, _ := MayWrite("3facfbc1", 1024)
 	if u != nil {
-		t.Fatal("Write allowed without a tikcet: %v", u)
+		t.Fatalf("Write allowed without a tikcet: %v", u)
 	}
 }
 
@@ -42,13 +42,13 @@ func TestAddRemove(t *testing.T) {
 
 	u, err := MayRead(ticket.Uuid, 1024)
 	if u == nil {
-		t.Fatal("Auth not added: %v", err)
+		t.Fatalf("Auth not added: %v", err)
 	}
 
 	Remove(ticket.Uuid)
 	u, err = MayRead(ticket.Uuid, 1024)
 	if u != nil {
-		t.Fatal("Auth not removed: %v", u)
+		t.Fatalf("Auth not removed: %v", u)
 	}
 }
 

@@ -66,7 +66,7 @@ func TestCreateFile(t *testing.T) {
 	}
 	for i := 0; i < len(buf); i++ {
 		if buf[i] != 0 {
-			t.Fatal("Uexpected byte: %v", buf[i])
+			t.Fatalf("Uexpected byte: %v", buf[i])
 		}
 	}
 }
